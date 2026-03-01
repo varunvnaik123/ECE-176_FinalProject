@@ -1,8 +1,7 @@
 # ECE 176 Final Project — Chart Pattern Recognition with CNNs
 
-**Course:** ECE 176 — Introduction to Deep Learning  
+**Course:** ECE 176: Introduction to Deep Learning  
 **Team:** Varun Naik and Sujal Gour
-**Date:** Winter 2027
 
 ---
 
