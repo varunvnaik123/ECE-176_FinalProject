@@ -1,0 +1,17 @@
+# data and model outputs
+/data/synthetic/
+/data/real/
+/checkpoints/
+/results/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# jupyter
+.ipynb_checkpoints/
+
+# mac
+.DS_Store
