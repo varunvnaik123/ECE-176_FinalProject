@@ -2,7 +2,6 @@
 /data/synthetic/
 /data/real/
 /checkpoints/
-/results/
 
 # python
 __pycache__/
