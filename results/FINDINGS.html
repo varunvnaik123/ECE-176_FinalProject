@@ -448,6 +448,25 @@
         Grad-CAM on low-confidence predictions<br/>(gradcam_low_conf.png)
       </div>
     </div>
+
+    <h3>Grad-CAM on Real S&P 500 Data</h3>
+    <p>
+      The three figures below are the key addition — Grad-CAM applied to actual S&P 500 windows,
+      not just clean synthetic charts. This directly shows whether the model's learned attention
+      transfers to real data or breaks down.
+    </p>
+    <div class="fig-row">
+      <div class="placeholder">
+        <span>🔬</span>
+        Synthetic vs Real side-by-side attention comparison<br/>(gradcam_synthetic_vs_real.png)<br/>
+        <small>Same predicted class, synthetic vs real chart, heatmaps side by side</small>
+      </div>
+      <div class="placeholder">
+        <span>✅❌</span>
+        Correct vs Wrong predictions on real data<br/>(gradcam_correct_vs_wrong.png)<br/>
+        <small>Grad-CAM on predictions that turned out right vs wrong after 5 days</small>
+      </div>
+    </div>
   </section>
 
   <!-- ── BACKTEST ── -->
