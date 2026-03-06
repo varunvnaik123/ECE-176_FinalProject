@@ -338,14 +338,14 @@
 
     <div class="cards">
       <div class="card">
-        <div class="val yellow">79.0%</div>
+        <div class="val yellow">83.9%</div>
         <div class="lbl">Mean Confidence</div>
         <div class="sub">vs ~99%+ on synthetic</div>
       </div>
       <div class="card">
-        <div class="val yellow">89.9%</div>
+        <div class="val yellow">84.3%</div>
         <div class="lbl">Windows above 0.55</div>
-        <div class="sub">80 of 89 windows</div>
+        <div class="sub">75 of 89 windows actionable</div>
       </div>
       <div class="card">
         <div class="val blue">89</div>
@@ -353,9 +353,9 @@
         <div class="sub">2yr S&P 500, step=5</div>
       </div>
       <div class="card">
-        <div class="val red">67</div>
+        <div class="val red">62</div>
         <div class="lbl">Bearish Detections</div>
-        <div class="sub">vs 15 bullish</div>
+        <div class="sub">vs 13 bullish</div>
       </div>
     </div>
 
@@ -371,8 +371,8 @@
         <div class="bar-track"><div class="bar-fill green" style="width:99%"></div></div>
       </div>
       <div class="bar-group">
-        <div class="bar-label"><span>Real S&P 500 data</span><span class="yellow">79%</span></div>
-        <div class="bar-track"><div class="bar-fill yellow" style="width:79%"></div></div>
+        <div class="bar-label"><span>Real S&P 500 data</span><span class="yellow">83.9%</span></div>
+        <div class="bar-track"><div class="bar-fill yellow" style="width:83.9%"></div></div>
       </div>
       <div class="bar-group">
         <div class="bar-label"><span>Random baseline (1/7)</span><span class="gray">14.3%</span></div>
@@ -459,45 +459,60 @@
       did over the next 5 trading days. A bullish signal is "correct" if price went up; bearish if price went down.
     </p>
 
-    <h3>Expected findings (notebook 05 output)</h3>
+    <h3>Actual results (notebook 05)</h3>
     <table>
       <thead>
-        <tr><th>Metric</th><th>Expected range</th><th>Interpretation</th></tr>
+        <tr><th>Metric</th><th>Result</th><th>Interpretation</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td>Directional accuracy</td>
-          <td class="yellow">~48–55%</td>
-          <td>Close to random — domain gap kills signal quality</td>
+          <td>Directional accuracy — overall</td>
+          <td class="red">37.3%</td>
+          <td>Significantly below random — model mispredicts direction</td>
+        </tr>
+        <tr>
+          <td>&nbsp;&nbsp;Bullish signals</td>
+          <td class="red">38.5% (n=13)</td>
+          <td>Below 50% baseline</td>
+        </tr>
+        <tr>
+          <td>&nbsp;&nbsp;Bearish signals</td>
+          <td class="red">37.1% (n=62)</td>
+          <td>Below 50% baseline</td>
         </tr>
         <tr>
           <td>t-test p-value vs 50%</td>
-          <td class="yellow">> 0.05 (not significant)</td>
-          <td>Cannot statistically distinguish from random guessing</td>
+          <td class="red">0.0272 (significant)</td>
+          <td>Result IS statistically significant — significantly <em>worse</em> than random</td>
         </tr>
         <tr>
           <td>Strategy total return</td>
-          <td class="yellow">Near 0%</td>
-          <td>Following signals doesn't beat random</td>
+          <td class="red">−30.6%</td>
+          <td>Following signals actively loses money</td>
         </tr>
         <tr>
-          <td>Sharpe ratio</td>
-          <td class="yellow">Near 0 or negative</td>
-          <td>Poor risk-adjusted return</td>
+          <td>Strategy Sharpe ratio</td>
+          <td class="red">−1.445</td>
+          <td>Very poor risk-adjusted return</td>
         </tr>
         <tr>
           <td>Buy &amp; hold return</td>
-          <td class="green">~20–25%</td>
-          <td>S&P 500 2yr benchmark — hard to beat</td>
+          <td class="green">+30.8%</td>
+          <td>S&P 500 2yr benchmark — strategy missed +61.4pp</td>
         </tr>
       </tbody>
     </table>
 
     <div class="finding">
-      Not beating the market is the <strong>expected and correct result</strong>. The project's finding is
-      not "our model makes money" — it is "the confidence drop from 100% → ~50% directional accuracy
-      quantifies exactly how much the synthetic-to-real domain shift costs."
-      If directional accuracy were significantly above 50%, we would question our methodology.
+      The result is <strong>stronger than expected</strong>. Not only does the model fail to beat random,
+      it is statistically significantly <em>worse</em> than random (p=0.027, accuracy=37.3%).
+      This means the synthetic patterns are anti-correlated with real market structure —
+      the features the model learned (clean Gaussian peaks and troughs) are present in real data
+      but in the opposite direction relative to future price movement.
+      This is the domain gap in its clearest form.
+      <br/><br/>
+      <strong>Note:</strong> Windows overlap heavily (step=5, window=60), so signals are autocorrelated
+      and the t-test p-value may be optimistic. The directional result is still clear regardless.
     </div>
 
     <div class="fig-row">
@@ -542,8 +557,8 @@
         </tr>
         <tr>
           <td>4</td>
-          <td><strong class="red">Synthetic training does not transfer to profitable signals</strong></td>
-          <td>Backtest directional accuracy ~50% — not statistically better than random</td>
+          <td><strong class="red">Synthetic training actively mispredicts on real data</strong></td>
+          <td>Directional accuracy 37.3%, p=0.027 — statistically significantly <em>worse</em> than random, not just equivalent</td>
         </tr>
         <tr>
           <td>5</td>
@@ -555,10 +570,13 @@
 
     <div class="finding" style="margin-top: 24px; font-size: 0.95rem;">
       <strong>Core takeaway:</strong> CNNs are capable of learning idealized chart patterns with 100% accuracy
-      on synthetic data. However, the domain gap between mathematically generated patterns and the noise,
-      trends, and structure of real financial markets is large enough to reduce directional predictive accuracy
-      to near-random levels. This confirms the fundamental challenge in financial ML:
-      <em>a model is only as good as the distribution it was trained on.</em>
+      on synthetic data. However, the domain gap between mathematically generated patterns and real financial
+      markets is so large that accuracy drops to 37.3% — <em>significantly below</em> random guessing (p=0.027).
+      The model is not just failing to generalize; its predictions are anti-correlated with real price movement,
+      costing −30.6% vs a buy &amp; hold return of +30.8%.
+      This confirms the fundamental challenge in financial ML:
+      <em>a model is only as good as the distribution it was trained on,
+      and idealized synthetic distributions can actively mislead real-world inference.</em>
     </div>
   </section>
 
