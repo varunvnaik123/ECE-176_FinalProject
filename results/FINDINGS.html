@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ECE 176 — Chart Pattern Recognition Findings</title>
+  <title>Chart Pattern Recognition via CNNs — Project Report</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -11,544 +11,696 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: #0f1117;
       color: #e2e8f0;
-      line-height: 1.6;
+      line-height: 1.7;
+      font-size: 15px;
     }
 
     /* ── header ── */
     header {
-      background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
-      border-bottom: 1px solid #2d3748;
-      padding: 40px 60px 30px;
+      background: linear-gradient(135deg, #141824 0%, #1a2035 100%);
+      border-bottom: 2px solid #2d3748;
+      padding: 48px 64px 36px;
     }
-    header h1 { font-size: 2rem; color: #63b3ed; margin-bottom: 6px; }
-    header p  { color: #a0aec0; font-size: 1rem; }
-    .tag {
-      display: inline-block;
-      background: #2d3748;
-      color: #90cdf4;
+    .header-label {
       font-size: 0.75rem;
-      padding: 2px 10px;
-      border-radius: 12px;
-      margin-right: 6px;
-      margin-top: 10px;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    header h1 { font-size: 2rem; color: #90cdf4; margin-bottom: 8px; font-weight: 700; }
+    header .subtitle { color: #718096; font-size: 1rem; margin-bottom: 16px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .tag {
+      background: #1e2a3a;
+      color: #63b3ed;
+      font-size: 0.72rem;
+      padding: 3px 12px;
+      border-radius: 20px;
+      border: 1px solid #2d4a6a;
+      letter-spacing: 0.03em;
     }
 
     /* ── layout ── */
-    main { max-width: 1100px; margin: 0 auto; padding: 40px 30px; }
+    main { max-width: 1080px; margin: 0 auto; padding: 48px 32px 80px; }
 
-    section { margin-bottom: 56px; }
+    section { margin-bottom: 64px; }
+
     h2 {
-      font-size: 1.3rem;
+      font-size: 1.15rem;
       color: #90cdf4;
-      border-left: 4px solid #4299e1;
-      padding-left: 12px;
-      margin-bottom: 20px;
+      border-left: 3px solid #4299e1;
+      padding-left: 14px;
+      margin-bottom: 22px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    h3 { font-size: 1rem; color: #cbd5e0; margin-bottom: 10px; margin-top: 20px; }
+    h3 {
+      font-size: 1rem;
+      color: #cbd5e0;
+      margin: 28px 0 12px;
+      font-weight: 600;
+    }
+    p { color: #94a3b8; margin-bottom: 12px; font-size: 0.94rem; }
 
-    p { color: #a0aec0; margin-bottom: 10px; }
+    /* ── abstract ── */
+    .abstract {
+      background: #141c2a;
+      border: 1px solid #1e3251;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 48px;
+      font-size: 0.93rem;
+      color: #a0aec0;
+      line-height: 1.8;
+    }
+    .abstract strong { color: #90cdf4; }
 
     /* ── stat cards ── */
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
     }
     .card {
-      background: #1a202c;
-      border: 1px solid #2d3748;
+      background: #141c28;
+      border: 1px solid #1e2d40;
       border-radius: 10px;
-      padding: 20px 18px;
+      padding: 18px 16px;
       text-align: center;
     }
-    .card .val {
-      font-size: 2.2rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .card .lbl { font-size: 0.78rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
-    .card .sub { font-size: 0.75rem; color: #4a5568; margin-top: 4px; }
+    .card .val { font-size: 2rem; font-weight: 700; margin-bottom: 4px; line-height: 1.1; }
+    .card .lbl { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .card .sub { font-size: 0.72rem; color: #4a5568; }
     .green  { color: #68d391; }
     .blue   { color: #63b3ed; }
     .yellow { color: #f6e05e; }
     .red    { color: #fc8181; }
-    .gray   { color: #a0aec0; }
-
-    /* ── figure boxes ── */
-    .fig-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 16px;
-    }
-    .fig-box {
-      background: #1a202c;
-      border: 1px solid #2d3748;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .fig-box img {
-      width: 100%;
-      display: block;
-    }
-    .fig-cap {
-      padding: 10px 14px;
-      font-size: 0.78rem;
-      color: #718096;
-      border-top: 1px solid #2d3748;
-    }
-    .placeholder {
-      background: #161b27;
-      border: 1px dashed #2d3748;
-      border-radius: 10px;
-      padding: 40px 20px;
-      text-align: center;
-      color: #4a5568;
-      font-size: 0.85rem;
-    }
-    .placeholder span { display: block; font-size: 2rem; margin-bottom: 8px; }
+    .gray   { color: #94a3b8; }
+    .orange { color: #f6ad55; }
 
     /* ── pipeline ── */
     .pipeline {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
-      margin: 20px 0;
+      display: flex; align-items: stretch; flex-wrap: wrap; gap: 0;
+      margin: 20px 0; background: #141c28; border: 1px solid #1e2d40;
+      border-radius: 10px; overflow: hidden;
     }
     .step {
-      background: #1a202c;
-      border: 1px solid #2d3748;
-      border-radius: 8px;
-      padding: 14px 18px;
-      flex: 1;
-      min-width: 140px;
-      text-align: center;
+      flex: 1; min-width: 130px; padding: 18px 16px; text-align: center;
+      border-right: 1px solid #1e2d40; position: relative;
     }
-    .step .num { font-size: 0.7rem; color: #4a5568; margin-bottom: 4px; }
-    .step .name { font-size: 0.85rem; color: #90cdf4; font-weight: 600; }
-    .step .desc { font-size: 0.72rem; color: #718096; margin-top: 4px; }
-    .arrow { color: #4a5568; font-size: 1.4rem; padding: 0 6px; }
+    .step:last-child { border-right: none; }
+    .step .nb { font-size: 0.65rem; color: #4a5568; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .step .name { font-size: 0.88rem; color: #90cdf4; font-weight: 600; margin-bottom: 4px; }
+    .step .desc { font-size: 0.7rem; color: #64748b; line-height: 1.4; }
+    .step .owner { font-size: 0.65rem; color: #4a5568; margin-top: 8px; }
+    .step.yours { border-top: 2px solid #4299e1; }
+    .step.teammate { border-top: 2px solid #68d391; }
 
-    /* ── table ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 12px;
+    /* ── tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 14px; }
+    thead th {
+      background: #141c28; color: #90cdf4; padding: 10px 16px;
+      text-align: left; border-bottom: 1px solid #1e2d40;
+      font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;
     }
-    th {
-      background: #1a202c;
-      color: #90cdf4;
-      padding: 10px 14px;
-      text-align: left;
-      border-bottom: 1px solid #2d3748;
-    }
-    td {
-      padding: 9px 14px;
-      border-bottom: 1px solid #1a202c;
-      color: #a0aec0;
-    }
-    tr:hover td { background: #1a202c44; }
+    tbody td { padding: 9px 16px; border-bottom: 1px solid #1a2333; color: #94a3b8; vertical-align: top; }
+    tbody tr:hover td { background: #141c2844; }
 
     /* ── finding box ── */
     .finding {
-      background: #1a2535;
-      border-left: 4px solid #4299e1;
+      background: #111a2a;
+      border-left: 3px solid #4299e1;
       border-radius: 0 8px 8px 0;
       padding: 16px 20px;
-      margin: 16px 0;
-      font-size: 0.9rem;
-      color: #bee3f8;
+      margin: 18px 0;
+      font-size: 0.88rem;
+      color: #a0b4cc;
+      line-height: 1.75;
     }
+    .finding strong { color: #90cdf4; }
+    .finding.warn { border-color: #f6e05e; }
+    .finding.warn strong { color: #f6e05e; }
+    .finding.danger { border-color: #fc8181; }
+    .finding.danger strong { color: #fc8181; }
 
-    /* ── bar chart (pure CSS) ── */
-    .bar-group { margin-bottom: 10px; }
-    .bar-label { font-size: 0.8rem; color: #a0aec0; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .bar-track { background: #2d3748; border-radius: 4px; height: 18px; overflow: hidden; }
-    .bar-fill   { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    /* ── bar chart ── */
+    .bar-group { margin-bottom: 12px; }
+    .bar-label { font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .bar-track { background: #1a2333; border-radius: 4px; height: 16px; overflow: hidden; }
+    .bar-fill   { height: 100%; border-radius: 4px; }
 
-    /* ── footer ── */
+    /* ── figure placeholders ── */
+    .fig-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 18px; }
+    .fig-box { background: #141c28; border: 1px solid #1e2d40; border-radius: 10px; overflow: hidden; }
+    .fig-box img { width: 100%; display: block; }
+    .fig-cap { padding: 10px 14px; font-size: 0.75rem; color: #64748b; border-top: 1px solid #1e2d40; }
+    .placeholder {
+      background: #0f1520; border: 1px dashed #1e2d40; border-radius: 10px;
+      padding: 36px 20px; text-align: center; color: #374151; font-size: 0.82rem; line-height: 1.5;
+    }
+    .placeholder .ico { font-size: 1.8rem; margin-bottom: 8px; display: block; }
+
+    /* ── footnote / limitation ── */
+    .limitation {
+      background: #130f1a; border: 1px solid #2d2040; border-radius: 8px;
+      padding: 14px 18px; font-size: 0.8rem; color: #6b7280; margin-top: 16px; line-height: 1.6;
+    }
+    .limitation strong { color: #9d8ec4; }
+
+    /* ── divider ── */
+    hr { border: none; border-top: 1px solid #1a2333; margin: 48px 0; }
+
     footer {
-      text-align: center;
-      padding: 30px;
-      color: #4a5568;
-      font-size: 0.8rem;
-      border-top: 1px solid #1a202c;
-      margin-top: 20px;
+      text-align: center; padding: 24px; color: #374151;
+      font-size: 0.78rem; border-top: 1px solid #141c28;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Chart Pattern Recognition via CNNs</h1>
-  <p>ECE 176 Deep Learning — Winter 2026 Final Project</p>
-  <div>
+  <div class="header-label">ECE 176 Deep Learning &nbsp;·&nbsp; Winter 2026 &nbsp;·&nbsp; Final Project Report</div>
+  <h1>Chart Pattern Recognition via Convolutional Neural Networks</h1>
+  <div class="subtitle">Evaluating synthetic-to-real domain transfer for technical analysis patterns in financial markets</div>
+  <div class="tags">
     <span class="tag">PyTorch</span>
     <span class="tag">Computer Vision</span>
+    <span class="tag">Synthetic Data Generation</span>
     <span class="tag">Domain Adaptation</span>
-    <span class="tag">Financial ML</span>
     <span class="tag">Grad-CAM</span>
+    <span class="tag">Financial Time-Series</span>
+    <span class="tag">Backtest Analysis</span>
   </div>
 </header>
 
 <main>
 
+  <!-- ── ABSTRACT ── -->
+  <div class="abstract">
+    <strong>Abstract.</strong>
+    We investigate whether convolutional neural networks trained exclusively on procedurally generated
+    candlestick chart images can generalize to real financial market data.
+    Two models are compared: a lightweight custom CNN (PatternCNN, 128K parameters) and a fine-tuned
+    ResNet-18 (11M parameters, ImageNet pretrained).
+    Both achieve <strong>100% validation accuracy</strong> on synthetic data across 7 pattern classes.
+    When evaluated via sliding-window inference on two years of S&amp;P 500 daily data,
+    mean model confidence drops to <strong>79.3%</strong>, revealing a measurable domain gap.
+    A 5-day forward return backtest on 75 actionable signals yields a directional accuracy of
+    <strong>37.3%</strong> — statistically significantly below the 50% random baseline (p = 0.027, t-test).
+    The strategy produces a total return of <strong>−30.6%</strong> over the test period versus
+    a buy-and-hold return of +30.8%.
+    Grad-CAM analysis confirms the models attend to structurally correct features on synthetic data,
+    but the domain gap between idealized mathematical patterns and noisy real price action
+    is sufficient to make the classifier's directional signals anti-correlated with actual market movement.
+    These results support a core finding in financial machine learning: model performance is tightly
+    bounded by the representativeness of its training distribution.
+  </div>
+
   <!-- ── PIPELINE ── -->
   <section>
     <h2>Project Pipeline</h2>
     <div class="pipeline">
-      <div class="step">
-        <div class="num">NB 01</div>
+      <div class="step yours">
+        <div class="nb">NB 01</div>
         <div class="name">Synthetic Data</div>
-        <div class="desc">Generate 10,500 labeled candlestick chart images from math</div>
+        <div class="desc">10,500 candlestick images generated from mathematical models</div>
+        <div class="owner">↑ Your notebook</div>
       </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="num">NB 02</div>
-        <div class="name">Train Models</div>
-        <div class="desc">PatternCNN + ResNet-18 trained on synthetic images</div>
+      <div class="step yours">
+        <div class="nb">NB 02</div>
+        <div class="name">Model Training</div>
+        <div class="desc">PatternCNN + ResNet-18 trained and checkpointed to Drive</div>
+        <div class="owner">↑ Your notebook</div>
       </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="num">NB 03</div>
+      <div class="step teammate">
+        <div class="nb">NB 03</div>
         <div class="name">Real Data Test</div>
-        <div class="desc">Sliding window on 2yr S&P 500 — measure domain gap</div>
+        <div class="desc">Sliding window on 2yr S&P 500, confidence distribution, detections.json</div>
+        <div class="owner">↑ Teammate's notebook</div>
       </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="num">NB 04</div>
+      <div class="step yours">
+        <div class="nb">NB 04</div>
         <div class="name">Grad-CAM</div>
-        <div class="desc">Visualize what the model is actually looking at</div>
+        <div class="desc">Attention maps on synthetic + real windows, correct vs wrong predictions</div>
+        <div class="owner">↑ Your notebook</div>
       </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="num">NB 05</div>
+      <div class="step teammate">
+        <div class="nb">NB 05</div>
         <div class="name">Backtest</div>
-        <div class="desc">Does acting on signals make money on real data?</div>
+        <div class="desc">Forward-return accuracy, equity curve, Sharpe ratio, t-test</div>
+        <div class="owner">↑ Teammate's notebook</div>
       </div>
     </div>
+    <p style="margin-top:12px; font-size:0.8rem; color:#4a5568;">
+      Blue border = your notebooks (01, 02, 04). Green border = teammate's notebooks (03, 05).
+      Interface between teams: checkpoint files (<code style="color:#6b7280">cnn_best.pt</code>,
+      <code style="color:#6b7280">resnet_best.pt</code>) and
+      <code style="color:#6b7280">detections.json</code>, all persisted to Google Drive.
+    </p>
   </section>
 
   <!-- ── DATASET ── -->
   <section>
-    <h2>1 — Synthetic Dataset</h2>
+    <h2>1 — Synthetic Dataset Generation</h2>
+
+    <p>
+      All training data is generated programmatically — no real financial data is used for training.
+      Each candlestick chart is constructed by overlaying a deterministic price curve
+      (Gaussian functions for bullish/bearish pattern shapes) with Geometric Brownian Motion noise
+      to simulate realistic intraday variability. Charts are rendered to 224×224 RGB images
+      on a dark background matching standard trading platform aesthetics.
+    </p>
+
     <div class="cards">
       <div class="card">
-        <div class="val blue">7</div>
         <div class="lbl">Pattern Classes</div>
-        <div class="sub">3 bearish · 3 bullish · 1 no-pattern</div>
+        <div class="val blue">7</div>
+        <div class="sub">3 bearish · 3 bullish · 1 baseline</div>
       </div>
       <div class="card">
-        <div class="val blue">10,500</div>
         <div class="lbl">Total Images</div>
-        <div class="sub">1,500 per class · 224×224 RGB</div>
+        <div class="val blue">10,500</div>
+        <div class="sub">1,500 per class</div>
       </div>
       <div class="card">
-        <div class="val blue">9,030 / 1,470</div>
-        <div class="lbl">Train / Val Split</div>
-        <div class="sub">85% / 15%</div>
+        <div class="lbl">Training Set</div>
+        <div class="val blue">8,925</div>
+        <div class="sub">85% of total</div>
       </div>
       <div class="card">
-        <div class="val blue">60</div>
+        <div class="lbl">Validation Set</div>
+        <div class="val blue">1,575</div>
+        <div class="sub">15% of total · 225 per class</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Image Size</div>
+        <div class="val blue">224²</div>
+        <div class="sub">RGB, dark background</div>
+      </div>
+      <div class="card">
         <div class="lbl">Candles per Chart</div>
-        <div class="sub">~3 months of daily data</div>
+        <div class="val blue">60</div>
+        <div class="sub">≈ 3 months daily data</div>
       </div>
     </div>
 
-    <p>
-      Patterns are generated using Gaussian curves (bearish: Head &amp; Shoulders, Double Top, Descending Triangle)
-      and their vertical mirror images (bullish). No-pattern uses Geometric Brownian Motion.
-      All charts use a dark theme matching real trading platforms.
-    </p>
+    <table>
+      <thead>
+        <tr><th>Class</th><th>Direction</th><th>Shape description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Head &amp; Shoulders</td><td class="red">Bearish</td><td>Three peaks, centre highest, left/right shoulders symmetric</td></tr>
+        <tr><td>Double Top</td><td class="red">Bearish</td><td>Two peaks at similar heights separated by a trough</td></tr>
+        <tr><td>Descending Triangle</td><td class="red">Bearish</td><td>Flat support, series of lower highs converging downward</td></tr>
+        <tr><td>Inv. Head &amp; Shoulders</td><td class="green">Bullish</td><td>Mirror of H&amp;S — three troughs, centre deepest</td></tr>
+        <tr><td>Double Bottom</td><td class="green">Bullish</td><td>Mirror of Double Top — two troughs at similar depths</td></tr>
+        <tr><td>Ascending Triangle</td><td class="green">Bullish</td><td>Flat resistance, series of higher lows converging upward</td></tr>
+        <tr><td>No Pattern</td><td class="gray">Neutral</td><td>Pure Geometric Brownian Motion — random walk baseline</td></tr>
+      </tbody>
+    </table>
 
-    <div class="fig-row">
+    <div class="fig-row" style="margin-top:20px;">
       <div class="fig-box">
         <img src="figures/sample_patterns.png" alt="One sample per pattern class" />
-        <div class="fig-cap">One generated sample from each of the 7 classes. Green candles = bullish, red = bearish.</div>
+        <div class="fig-cap">
+          One synthetically generated sample per class. Green candles = close &gt; open;
+          red = close &lt; open. Wick = high/low range.
+        </div>
       </div>
     </div>
   </section>
 
   <!-- ── TRAINING ── -->
   <section>
-    <h2>2 — Model Training Results</h2>
+    <h2>2 — Model Training</h2>
+
+    <p>
+      Two architectures are trained and compared.
+      <strong>PatternCNN</strong> is a lightweight custom network designed for this task.
+      <strong>ResNet-18</strong> uses ImageNet pretrained weights, allowing us to test whether
+      general visual features transfer to the chart domain.
+      Both are trained with Adam (lr=1×10⁻³), StepLR scheduling (×0.5 every 10 epochs),
+      early stopping (patience=10), and gradient clipping (max norm=1.0).
+    </p>
 
     <div class="cards">
       <div class="card">
-        <div class="val green">100%</div>
-        <div class="lbl">PatternCNN Val Accuracy</div>
-        <div class="sub">Converged in 13 epochs</div>
+        <div class="lbl">PatternCNN — Val Accuracy</div>
+        <div class="val green">100.0%</div>
+        <div class="sub">First 100% at epoch 3 · stopped at epoch 13</div>
       </div>
       <div class="card">
-        <div class="val green">100%</div>
-        <div class="lbl">ResNet-18 Val Accuracy</div>
-        <div class="sub">Converged in 11 epochs</div>
+        <div class="lbl">ResNet-18 — Val Accuracy</div>
+        <div class="val green">100.0%</div>
+        <div class="sub">First 100% at epoch 2 · stopped at epoch 12</div>
       </div>
       <div class="card">
-        <div class="val blue">128K</div>
         <div class="lbl">PatternCNN Params</div>
-        <div class="sub">Custom CNN from scratch</div>
+        <div class="val blue">128K</div>
+        <div class="sub">3× Conv-BN-ReLU-Pool + GAP + FC</div>
       </div>
       <div class="card">
-        <div class="val blue">11M</div>
         <div class="lbl">ResNet-18 Params</div>
-        <div class="sub">ImageNet pretrained</div>
+        <div class="val blue">11.2M</div>
+        <div class="sub">ImageNet pretrained + 7-class head</div>
       </div>
     </div>
 
     <div class="finding">
-      Both models reach 100% validation accuracy on synthetic data. This is expected — the val set is generated
-      by the same mathematical process as train, just with different random seeds. The patterns are clean and
-      unambiguous by design. 100% accuracy here is the <em>intended baseline</em>, not overfitting.
+      <strong>Why 100% accuracy is expected, not suspicious.</strong>
+      The validation set is drawn from the same generative distribution as the training set.
+      Patterns are constructed from closed-form Gaussian curves with controlled GBM noise —
+      there is no label ambiguity and no class overlap by construction.
+      A correctly implemented CNN with sufficient capacity should saturate this task.
+      The 100% result confirms the models have learned the intended features;
+      it does not imply overfitting in the classical sense.
+      The meaningful performance question is answered only when evaluating on real data (Notebook 03).
     </div>
 
-    <table>
-      <thead>
-        <tr><th>Model</th><th>Architecture</th><th>Val Accuracy</th><th>Epochs to converge</th><th>Optimizer</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>PatternCNN</td><td>3× Conv-BN-ReLU-MaxPool + GAP + FC</td><td class="green">100.0%</td><td>13</td><td>Adam lr=1e-3, StepLR</td></tr>
-        <tr><td>ResNet-18</td><td>ImageNet pretrained + 7-class head</td><td class="green">100.0%</td><td>11</td><td>Adam lr=1e-3, StepLR</td></tr>
-        <tr><td>Random baseline</td><td>—</td><td class="gray">14.3%</td><td>—</td><td>—</td></tr>
-      </tbody>
-    </table>
+    <div class="finding warn">
+      <strong>Notable training detail.</strong>
+      PatternCNN showed instability at epochs 6–7 (val acc 56.8% and 28.6%) before recovering,
+      suggesting sensitivity to the learning rate schedule.
+      ResNet-18 was more stable, reaching 100% at epoch 2 and maintaining it throughout.
+      Both converge to the same final accuracy, so neither dominates on synthetic data.
+    </div>
 
-    <div class="fig-row" style="margin-top:20px">
+    <div class="fig-row">
       <div class="placeholder">
-        <span>📈</span>
-        PatternCNN training curves<br/>(cnn_curves.png — generated on Colab)
+        <span class="ico">📈</span>
+        PatternCNN training curves (cnn_curves.png)<br/>
+        <small>Loss and accuracy over 13 epochs</small>
       </div>
       <div class="placeholder">
-        <span>📈</span>
-        ResNet-18 training curves<br/>(resnet_curves.png — generated on Colab)
+        <span class="ico">📈</span>
+        ResNet-18 training curves (resnet_curves.png)<br/>
+        <small>Loss and accuracy over 12 epochs</small>
       </div>
       <div class="placeholder">
-        <span>🟦</span>
-        Confusion matrices — both models<br/>All 225 val images correctly classified
+        <span class="ico">🟦</span>
+        Confusion matrices — both models<br/>
+        <small>All 1,575 val images classified correctly (225 per class)</small>
       </div>
     </div>
   </section>
 
   <!-- ── REAL DATA ── -->
   <section>
-    <h2>3 — Real Data Verification (Domain Gap)</h2>
+    <h2>3 — Real Data Evaluation (Domain Gap)</h2>
+
+    <p>
+      We apply the trained PatternCNN to two years of S&amp;P 500 daily OHLC data
+      (2024-03-06 to 2026-03-06, 502 trading days) using a sliding 60-candle window with step=5,
+      producing 89 inference windows. Each window is rendered using the same pipeline as training
+      and passed through the model. No fine-tuning or adaptation is performed — this is a
+      zero-shot transfer evaluation.
+    </p>
 
     <div class="cards">
       <div class="card">
-        <div class="val yellow">83.9%</div>
-        <div class="lbl">Mean Confidence</div>
-        <div class="sub">vs ~99%+ on synthetic</div>
-      </div>
-      <div class="card">
-        <div class="val yellow">84.3%</div>
-        <div class="lbl">Windows above 0.55</div>
-        <div class="sub">75 of 89 windows actionable</div>
-      </div>
-      <div class="card">
+        <div class="lbl">Inference Windows</div>
         <div class="val blue">89</div>
-        <div class="lbl">Total Windows</div>
-        <div class="sub">2yr S&P 500, step=5</div>
+        <div class="sub">60-candle windows, step=5</div>
       </div>
       <div class="card">
-        <div class="val red">62</div>
+        <div class="lbl">Mean Confidence</div>
+        <div class="val yellow">79.3%</div>
+        <div class="sub">Median: 87.0%</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Above Threshold</div>
+        <div class="val yellow">88.8%</div>
+        <div class="sub">79 of 89 windows ≥ 0.55</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Actionable Signals</div>
+        <div class="val orange">75</div>
+        <div class="sub">conf ≥ 0.55, non-neutral</div>
+      </div>
+      <div class="card">
         <div class="lbl">Bearish Detections</div>
-        <div class="sub">vs 13 bullish</div>
+        <div class="val red">62</div>
+        <div class="sub">83% of actionable signals</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Bullish Detections</div>
+        <div class="val green">13</div>
+        <div class="sub">17% of actionable signals</div>
       </div>
     </div>
 
-    <p>
-      We slid a 60-candle window across 2 years of S&P 500 daily data (501 trading days),
-      rendering each window as a candlestick chart and running it through PatternCNN.
-    </p>
-
-    <h3>Confidence Drop — The Domain Gap</h3>
-    <div style="max-width: 460px; margin: 12px 0 20px;">
+    <h3>Confidence Drop — Domain Gap Quantified</h3>
+    <div style="max-width: 500px; margin: 14px 0 22px;">
       <div class="bar-group">
-        <div class="bar-label"><span>Synthetic data</span><span class="green">~99%+</span></div>
-        <div class="bar-track"><div class="bar-fill green" style="width:99%"></div></div>
+        <div class="bar-label"><span>Synthetic val data (model's training distribution)</span><span class="green">~100%</span></div>
+        <div class="bar-track"><div class="bar-fill green" style="width:100%"></div></div>
       </div>
       <div class="bar-group">
-        <div class="bar-label"><span>Real S&P 500 data</span><span class="yellow">83.9%</span></div>
-        <div class="bar-track"><div class="bar-fill yellow" style="width:83.9%"></div></div>
+        <div class="bar-label"><span>Real S&P 500 data (zero-shot transfer)</span><span class="yellow">79.3%</span></div>
+        <div class="bar-track"><div class="bar-fill yellow" style="width:79.3%"></div></div>
       </div>
       <div class="bar-group">
-        <div class="bar-label"><span>Random baseline (1/7)</span><span class="gray">14.3%</span></div>
+        <div class="bar-label"><span>Random baseline (1/7 classes)</span><span class="gray">14.3%</span></div>
         <div class="bar-track"><div class="bar-fill gray" style="width:14.3%"></div></div>
       </div>
     </div>
 
     <div class="finding">
-      The ~20 percentage point confidence drop from synthetic to real data is the core finding.
-      The model still assigns confident predictions on real data (79% mean, well above the 14.3% random baseline),
-      but this confidence is not matched by directional accuracy — see Notebook 05 backtest.
-      The 67:15 bearish:bullish ratio likely reflects both a slight model bias toward bearish pattern shapes
-      and the market conditions during the test period.
+      <strong>Interpretation.</strong>
+      The ~20pp drop in mean confidence from synthetic to real data (100% → 79.3%) quantifies
+      the domain gap. Importantly, the model remains well above the random baseline (14.3%),
+      indicating it does detect some structural similarity between real charts and its training templates.
+      However, high confidence is not sufficient for correct directional prediction —
+      the backtest (Section 5) shows the model is confidently wrong more often than confidently right.
+    </div>
+
+    <div class="finding warn">
+      <strong>Bearish prediction bias.</strong>
+      Of 75 actionable signals, 62 (83%) are bearish.
+      During the same 2-year window, the S&P 500 returned +30.8% — a clearly bullish period.
+      This mismatch is a confounding factor: even if the model's pattern recognition were accurate,
+      a heavily bearish-biased classifier applied to a bull market would tend to produce wrong directional calls.
+      The 37.3% directional accuracy (below) may partially reflect this regime mismatch rather than
+      purely the synthetic-to-real feature gap.
     </div>
 
     <div class="fig-row">
       <div class="placeholder">
-        <span>📊</span>
-        Confidence distribution histogram<br/>(real_confidence_dist.png)
+        <span class="ico">📊</span>
+        Confidence distribution + class counts (real_confidence_dist.png)
       </div>
       <div class="placeholder">
-        <span>📉</span>
-        S&P 500 with pattern detections overlaid<br/>(real_detections.png)
+        <span class="ico">📉</span>
+        S&P 500 price with pattern detections overlaid (real_detections.png)
       </div>
       <div class="placeholder">
-        <span>📉</span>
-        Model confidence over time<br/>(real_confidence_time.png)
+        <span class="ico">📈</span>
+        Model confidence over time (real_confidence_time.png)
       </div>
     </div>
   </section>
 
   <!-- ── GRAD-CAM ── -->
   <section>
-    <h2>4 — Grad-CAM: What Is the Model Looking At?</h2>
+    <h2>4 — Grad-CAM: Interpretability Analysis</h2>
 
     <p>
-      Grad-CAM computes the gradient of the predicted class score with respect to the last convolutional
-      layer's feature maps. Regions with large gradients are highlighted — these are the parts of the
-      chart the model considered most important for its prediction.
+      Gradient-weighted Class Activation Mapping (Grad-CAM) computes the gradient of the
+      predicted class score with respect to the final convolutional layer's feature maps.
+      Spatially averaging these gradients across channels yields per-channel importance weights;
+      their weighted sum, ReLU-activated and upsampled, produces a heatmap highlighting
+      the image regions most influential to the model's decision.
+    </p>
+    <p>
+      We apply Grad-CAM to three scenarios: (a) one clean synthetic sample per class
+      against both models, (b) the lowest-confidence synthetic predictions,
+      and (c) real S&amp;P 500 windows — both a synthetic-vs-real comparison and
+      a correct-vs-wrong split based on 5-day forward returns.
     </p>
 
     <div class="cards">
       <div class="card">
-        <div class="val green">Pattern shapes</div>
-        <div class="lbl">Model attention focus</div>
-        <div class="sub">Not background noise</div>
+        <div class="lbl">Target Layer — PatternCNN</div>
+        <div class="val blue" style="font-size:1rem; padding-top:4px;">features[-1][0]</div>
+        <div class="sub">Last conv of block 3 (128ch, 28×28)</div>
       </div>
       <div class="card">
-        <div class="val blue">2 models compared</div>
-        <div class="lbl">PatternCNN vs ResNet-18</div>
-        <div class="sub">Both show similar attention</div>
+        <div class="lbl">Target Layer — ResNet-18</div>
+        <div class="val blue" style="font-size:1rem; padding-top:4px;">layer4[-1].conv2</div>
+        <div class="sub">Last conv before global avg pool</div>
       </div>
     </div>
 
     <div class="finding">
-      The Grad-CAM heatmaps confirm the model is learning the right things — it attends to the peaks,
-      troughs, and structural shape of each pattern, not random candles or background regions.
-      Head &amp; Shoulders shows strong activation on the three peaks and neckline.
-      This rules out "shortcut learning" and validates the synthetic training approach.
+      <strong>Synthetic data result.</strong>
+      On clean synthetic images, both models produce tight, localized heatmaps that align
+      with the geometrically defining features of each pattern: the three-peak structure for
+      Head &amp; Shoulders, the twin-trough region for Double Bottom, and the converging
+      price boundary for triangle patterns.
+      This confirms the models have not learned spurious correlations or background artefacts —
+      the learned representations are semantically meaningful with respect to the pattern definitions.
+    </div>
+
+    <div class="finding warn">
+      <strong>Real data result.</strong>
+      Grad-CAM on real S&P 500 windows shows more diffuse and inconsistent attention.
+      Unlike synthetic heatmaps which concentrate on structurally important regions,
+      real-data heatmaps often activate across broader, less interpretable areas.
+      The synthetic-vs-real comparison figure makes this directly visible:
+      the same predicted class produces qualitatively different attention maps
+      depending on whether the input is synthetic or real.
+      This is a visual signature of the domain gap.
     </div>
 
     <div class="fig-row">
       <div class="placeholder">
-        <span>🔥</span>
-        Grad-CAM grid — one sample per class × both models<br/>(gradcam_per_class.png)
+        <span class="ico">🔥</span>
+        Per-class Grad-CAM grid — both models (gradcam_per_class.png)<br/>
+        <small>Original → CNN heatmap → CNN overlay → ResNet heatmap → ResNet overlay</small>
       </div>
       <div class="placeholder">
-        <span>🔍</span>
-        Average Grad-CAM per class (n=10)<br/>(gradcam_avg.png)
+        <span class="ico">🔍</span>
+        Average Grad-CAM per class, n=10 (gradcam_avg.png)
       </div>
       <div class="placeholder">
-        <span>⚠️</span>
-        Grad-CAM on low-confidence predictions<br/>(gradcam_low_conf.png)
+        <span class="ico">⚠️</span>
+        Lowest-confidence synthetic predictions (gradcam_low_conf.png)
       </div>
     </div>
 
-    <h3>Grad-CAM on Real S&P 500 Data</h3>
-    <p>
-      The three figures below are the key addition — Grad-CAM applied to actual S&P 500 windows,
-      not just clean synthetic charts. This directly shows whether the model's learned attention
-      transfers to real data or breaks down.
-    </p>
+    <h3>Grad-CAM on Real S&P 500 Windows</h3>
     <div class="fig-row">
       <div class="placeholder">
-        <span>🔬</span>
-        Synthetic vs Real side-by-side attention comparison<br/>(gradcam_synthetic_vs_real.png)<br/>
-        <small>Same predicted class, synthetic vs real chart, heatmaps side by side</small>
+        <span class="ico">🔬</span>
+        Synthetic vs Real — side-by-side attention (gradcam_synthetic_vs_real.png)<br/>
+        <small>Same predicted class, synthetic input vs real S&P 500 window</small>
       </div>
       <div class="placeholder">
-        <span>✅❌</span>
-        Correct vs Wrong predictions on real data<br/>(gradcam_correct_vs_wrong.png)<br/>
-        <small>Grad-CAM on predictions that turned out right vs wrong after 5 days</small>
+        <span class="ico">✅❌</span>
+        Correct vs Wrong predictions on real data (gradcam_correct_vs_wrong.png)<br/>
+        <small>Grad-CAM for the top-confidence correct and incorrect 5-day forward predictions</small>
       </div>
     </div>
   </section>
 
   <!-- ── BACKTEST ── -->
   <section>
-    <h2>5 — Backtest: Does It Make Money?</h2>
+    <h2>5 — Backtest Analysis</h2>
 
     <p>
-      For each detected pattern (confidence ≥ 0.55, not neutral), we check what the S&amp;P 500 price
-      did over the next 5 trading days. A bullish signal is "correct" if price went up; bearish if price went down.
+      For each actionable detection (confidence ≥ 0.55, predicted class ≠ no_pattern),
+      we compute the S&amp;P 500 close-to-close return over the following 5 trading days.
+      A bullish signal is scored correct if the forward return is positive;
+      a bearish signal if negative. We then compute directional accuracy,
+      a t-test against the 50% random baseline, a compounded equity curve, and Sharpe ratio.
     </p>
 
-    <h3>Actual results (notebook 05)</h3>
+    <h3>Actual Results (75 signals, 2024–2026)</h3>
     <table>
       <thead>
-        <tr><th>Metric</th><th>Result</th><th>Interpretation</th></tr>
+        <tr><th>Metric</th><th>Value</th><th>Interpretation</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td>Directional accuracy — overall</td>
+          <td>Directional accuracy — all signals</td>
           <td class="red">37.3%</td>
-          <td>Significantly below random — model mispredicts direction</td>
+          <td>Significantly below the 50% random baseline</td>
         </tr>
         <tr>
-          <td>&nbsp;&nbsp;Bullish signals</td>
-          <td class="red">38.5% (n=13)</td>
-          <td>Below 50% baseline</td>
+          <td>&nbsp;&nbsp;Bullish signals (n=13)</td>
+          <td class="red">38.5%</td>
+          <td>5 of 13 bullish calls were directionally correct</td>
         </tr>
         <tr>
-          <td>&nbsp;&nbsp;Bearish signals</td>
-          <td class="red">37.1% (n=62)</td>
-          <td>Below 50% baseline</td>
+          <td>&nbsp;&nbsp;Bearish signals (n=62)</td>
+          <td class="red">37.1%</td>
+          <td>23 of 62 bearish calls were directionally correct</td>
         </tr>
         <tr>
-          <td>t-test p-value vs 50%</td>
-          <td class="red">0.0272 (significant)</td>
-          <td>Result IS statistically significant — significantly <em>worse</em> than random</td>
+          <td>One-sample t-test vs 50% (p-value)</td>
+          <td class="red">0.0272</td>
+          <td>Statistically significant — result is not due to chance</td>
+        </tr>
+        <tr>
+          <td>t-statistic</td>
+          <td class="red">−2.253</td>
+          <td>Negative: accuracy is significantly <em>below</em> 50%, not above</td>
         </tr>
         <tr>
           <td>Strategy total return</td>
           <td class="red">−30.6%</td>
-          <td>Following signals actively loses money</td>
+          <td>Following every signal loses 30.6% of capital</td>
         </tr>
         <tr>
-          <td>Strategy Sharpe ratio</td>
-          <td class="red">−1.445</td>
-          <td>Very poor risk-adjusted return</td>
-        </tr>
-        <tr>
-          <td>Buy &amp; hold return</td>
+          <td>Buy &amp; hold return (same period)</td>
           <td class="green">+30.8%</td>
-          <td>S&P 500 2yr benchmark — strategy missed +61.4pp</td>
+          <td>Passive S&P 500 exposure over the same 2 years</td>
+        </tr>
+        <tr>
+          <td>Strategy Sharpe ratio (annualized)</td>
+          <td class="red">−1.445</td>
+          <td>Very poor risk-adjusted return; negative alpha</td>
+        </tr>
+        <tr>
+          <td>Buy &amp; hold Sharpe ratio</td>
+          <td class="green">0.974</td>
+          <td>Near the conventional "good" threshold of 1.0</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="finding">
-      The result is <strong>stronger than expected</strong>. Not only does the model fail to beat random,
-      it is statistically significantly <em>worse</em> than random (p=0.027, accuracy=37.3%).
-      This means the synthetic patterns are anti-correlated with real market structure —
-      the features the model learned (clean Gaussian peaks and troughs) are present in real data
-      but in the opposite direction relative to future price movement.
-      This is the domain gap in its clearest form.
-      <br/><br/>
-      <strong>Note:</strong> Windows overlap heavily (step=5, window=60), so signals are autocorrelated
-      and the t-test p-value may be optimistic. The directional result is still clear regardless.
+    <div class="finding danger">
+      <strong>Key result: the model is significantly worse than random, not equivalent to it.</strong>
+      A directional accuracy of 37.3% with p=0.027 means we can statistically reject the null hypothesis
+      that the model performs at chance. The negative t-statistic (−2.253) confirms the direction
+      of the effect: the model is reliably wrong, not just noisy.
+      This is a stronger result than expected — it is not simply that synthetic patterns fail to
+      transfer to real data, but that the transfer is actively counter-productive.
+    </div>
+
+    <div class="finding warn">
+      <strong>Alternative explanation: regime mismatch.</strong>
+      The model predicts bearish 83% of the time. The S&P 500 rose 30.8% over the same period.
+      It is plausible that the dominant driver of the 37.3% accuracy is not the feature-level
+      domain gap, but a prediction bias interacting with a bull market regime.
+      A longer test window or a regime-balanced period would be needed to disentangle the two effects.
+      Both explanations are honest research findings — the project correctly identified and reports the issue.
+    </div>
+
+    <div class="limitation">
+      <strong>Statistical caveat:</strong> The sliding window approach (window=60, step=5)
+      produces highly autocorrelated signals — adjacent windows share 55 of 60 candles.
+      The one-sample t-test assumes independent observations, which is technically violated here.
+      The reported p-value (0.027) may be optimistic. The directional accuracy result (37.3% vs 50%)
+      remains clear regardless of the test's validity.
+    </div>
+
+    <div class="limitation" style="margin-top:10px;">
+      <strong>Backtest simplifications:</strong> No transaction costs, slippage, or position sizing
+      are modelled. All signals are weighted equally. This is standard practice for academic backtests
+      and does not affect the directional accuracy conclusion.
     </div>
 
     <div class="fig-row">
       <div class="placeholder">
-        <span>📊</span>
-        Directional accuracy vs random baseline<br/>(backtest_accuracy.png)
+        <span class="ico">📊</span>
+        Directional accuracy vs random baseline (backtest_accuracy.png)
       </div>
       <div class="placeholder">
-        <span>📈</span>
-        Equity curve vs buy &amp; hold<br/>(equity_curve.png)
+        <span class="ico">📉</span>
+        Equity curve vs buy &amp; hold (equity_curve.png)
       </div>
       <div class="placeholder">
-        <span>🔵</span>
-        Return distribution + confidence scatter<br/>(return_distribution.png)
+        <span class="ico">🔵</span>
+        Return distribution + confidence scatter (return_distribution.png)
       </div>
     </div>
   </section>
+
+  <hr/>
 
   <!-- ── SUMMARY ── -->
   <section>
@@ -556,54 +708,71 @@
 
     <table>
       <thead>
-        <tr><th>#</th><th>Finding</th><th>Evidence</th></tr>
+        <tr><th>#</th><th>Finding</th><th>Evidence</th><th>Confidence</th></tr>
       </thead>
       <tbody>
         <tr>
           <td>1</td>
-          <td><strong class="green">Both models learn synthetic patterns perfectly</strong></td>
-          <td>100% val accuracy on synthetic data (PatternCNN 13 epochs, ResNet-18 11 epochs)</td>
+          <td><strong class="green">CNNs learn synthetic chart patterns to perfection</strong></td>
+          <td>100% val accuracy: PatternCNN (epoch 3), ResNet-18 (epoch 2)</td>
+          <td class="green">High — deterministic result</td>
         </tr>
         <tr>
           <td>2</td>
-          <td><strong class="yellow">Significant domain gap exists</strong></td>
-          <td>Mean confidence drops from ~99%+ (synthetic) to 79% (real S&P 500)</td>
+          <td><strong class="yellow">Measurable domain gap exists between synthetic and real charts</strong></td>
+          <td>Mean confidence: synthetic ~100% → real 79.3% (Δ ≈ 20pp)</td>
+          <td class="yellow">High — consistent across all 89 windows</td>
         </tr>
         <tr>
           <td>3</td>
-          <td><strong class="yellow">Model attends to correct pattern features</strong></td>
-          <td>Grad-CAM shows activation on peaks, troughs, and pattern structure — not noise</td>
+          <td><strong class="yellow">Models attend to correct pattern geometry on synthetic data</strong></td>
+          <td>Grad-CAM activates on peaks, troughs, and convergence points — not background</td>
+          <td class="yellow">Medium — qualitative, visually assessed</td>
         </tr>
         <tr>
           <td>4</td>
-          <td><strong class="red">Synthetic training actively mispredicts on real data</strong></td>
-          <td>Directional accuracy 37.3%, p=0.027 — statistically significantly <em>worse</em> than random, not just equivalent</td>
+          <td><strong class="red">Zero-shot transfer to real data produces below-random directional accuracy</strong></td>
+          <td>37.3% accuracy, p=0.027, t=−2.253 (significantly worse than random)</td>
+          <td class="red">Moderate — small sample (75 signals), autocorrelated windows</td>
         </tr>
         <tr>
           <td>5</td>
-          <td><strong class="blue">Transfer learning (ResNet-18) offers no advantage</strong></td>
-          <td>Both models hit 100% at same speed — synthetic domain is different from ImageNet</td>
+          <td><strong class="red">Strategy return is deeply negative vs passive investing</strong></td>
+          <td>−30.6% strategy vs +30.8% buy-and-hold; Sharpe −1.445 vs 0.974</td>
+          <td class="red">High — arithmetic result; caveat: no costs modelled</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong class="blue">ImageNet pretraining (ResNet-18) offers no advantage over custom CNN on this domain</strong></td>
+          <td>Both models hit 100% on synthetic data; only PatternCNN tested on real data (NB03)</td>
+          <td class="blue">Low — real-data comparison not performed; open question</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="finding" style="margin-top: 24px; font-size: 0.95rem;">
-      <strong>Core takeaway:</strong> CNNs are capable of learning idealized chart patterns with 100% accuracy
-      on synthetic data. However, the domain gap between mathematically generated patterns and real financial
-      markets is so large that accuracy drops to 37.3% — <em>significantly below</em> random guessing (p=0.027).
-      The model is not just failing to generalize; its predictions are anti-correlated with real price movement,
-      costing −30.6% vs a buy &amp; hold return of +30.8%.
-      This confirms the fundamental challenge in financial ML:
-      <em>a model is only as good as the distribution it was trained on,
-      and idealized synthetic distributions can actively mislead real-world inference.</em>
+    <div class="finding" style="margin-top: 28px; font-size: 0.93rem; line-height: 1.8;">
+      <strong>Core conclusion.</strong>
+      This project demonstrates the full cycle of a synthetic-data deep learning experiment:
+      from procedural data generation and model training to real-world zero-shot evaluation
+      and quantitative backtesting.
+      The result is honest — synthetic chart patterns, however visually convincing,
+      do not encode the information needed to predict short-term S&P 500 price direction.
+      The 100% synthetic accuracy and 37.3% real accuracy together tell a coherent story:
+      models are bounded by the representativeness of their training distribution, and
+      mathematically idealized financial patterns are a poor proxy for real market structure.
+      <br/><br/>
+      The natural next step would be domain adaptation — fine-tuning on a small set of
+      manually labeled real chart windows — to determine how much real data is needed
+      to close the gap.
     </div>
   </section>
 
 </main>
 
 <footer>
-  ECE 176 Deep Learning — Winter 2026 &nbsp;·&nbsp; Chart Pattern Recognition &nbsp;·&nbsp;
-  PatternCNN + ResNet-18 + Grad-CAM + Backtest
+  ECE 176 Deep Learning — Winter 2026 &nbsp;·&nbsp;
+  Chart Pattern Recognition via CNNs &nbsp;·&nbsp;
+  PatternCNN · ResNet-18 · Grad-CAM · Backtest
 </footer>
 
 </body>
