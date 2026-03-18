@@ -5,6 +5,9 @@
 
 ---
 
+#Demo video: https://drive.google.com/file/d/1FSg0V32TzEsSwo7rnUd_z5Tt2OzAMKAR/view?usp=sharing
+
+
 ## What We Built
 
 We trained CNNs to recognize stock chart patterns from candlestick images, things
